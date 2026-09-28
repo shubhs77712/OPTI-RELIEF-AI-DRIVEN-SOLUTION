@@ -1,0 +1,190 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>OptiRelief — AI-Driven Disaster Response Logistics Engine</title>
+<meta name="description" content="OptiRelief: SIH 26002 compliant multi-constraint resource allocation, 3D bin-packing, and accessibility intelligence platform for disaster response logistics.">
+<meta name="theme-color" content="#000000">
+<link rel="manifest" href="manifest.webmanifest">
+
+<!-- Apple SF Pro Fallbacks & JetBrains Mono -->
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
+
+<script src="https://cdn.tailwindcss.com"></script>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@6.5.2/css/all.min.css">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/leaflet@1.9.4/dist/leaflet.css">
+<link rel="stylesheet" href="css/style.css?v=3.0">
+</head>
+<body class="bg-[#f5f5f7] text-[#1d1d1f]">
+
+<!-- ===================== 1. Apple Global Nav (44px Pure Black) ===================== -->
+<header class="global-nav">
+  <div class="flex items-center gap-3">
+    <a href="#/dashboard" class="flex items-center gap-2 py-1 px-1 rounded hover:opacity-90 transition">
+      <div class="w-6 h-6 rounded-md grid place-items-center bg-[#0066cc]">
+        <i class="fa-solid fa-cubes-stacked text-white text-[11px]"></i>
+      </div>
+      <span class="text-[13px] font-semibold text-white tracking-tight">OptiRelief</span>
+      <span class="text-[10px] text-[#7a7a7a] font-normal hidden sm:inline tracking-normal ml-0.5">NER Logistics</span>
+    </a>
+  </div>
+
+  <!-- Global Nav Quick Desktop Links -->
+  <nav class="hidden xl:flex items-center gap-5 text-[12px] font-normal text-[#cccccc]" aria-label="Global quick navigation">
+    <a href="#/dashboard" class="hover:text-white transition">Dashboard</a>
+    <a href="#/optimizer" class="hover:text-white transition">Optimizer</a>
+    <a href="#/map" class="hover:text-white transition">Zone Map</a>
+    <a href="#/fleet" class="hover:text-white transition">Fleet</a>
+    <a href="#/inventory" class="hover:text-white transition">Inventory</a>
+    <a href="#/sites" class="hover:text-white transition">Disaster Sites</a>
+    <a href="#/dispatch" class="hover:text-white transition">Dispatch</a>
+    <a href="#/system" class="hover:text-white transition">System</a>
+  </nav>
+
+  <!-- Right Utility Cluster -->
+  <div class="flex items-center gap-2 sm:gap-2.5">
+    <!-- SIH Compliance Pill -->
+    <button id="top-compliance-btn" class="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full border border-emerald-500/40 bg-emerald-950/40 hover:bg-emerald-900/50 text-emerald-300 text-[11px] font-medium cursor-pointer transition">
+      <i class="fa-solid fa-circle-check text-emerald-400 text-[10px]"></i>
+      <span class="hidden md:inline">SIH 26002</span> Matrix
+    </button>
+
+    <!-- Data Source Mode Toggle -->
+    <div id="datasource-badge" class="flex items-center gap-1.5 px-2.5 py-0.5 rounded-full border border-sky-500/40 bg-sky-950/40 text-[11px] text-sky-200 cursor-pointer hover:bg-sky-900/50 transition" title="Toggle Simulated vs Live API adapters">
+      <span class="w-1.5 h-1.5 rounded-full bg-[#2997ff] animate-pulse"></span>
+      <span id="datasource-text" class="font-mono-num text-[10px] font-medium tracking-tight">SRC: SIMULATED</span>
+    </div>
+
+    <!-- Role Selector -->
+    <select id="role-selector" class="text-[11px] py-0.5 px-2 rounded-full bg-[#1d1d1f] border border-[#333333] text-white font-normal cursor-pointer outline-none">
+      <option value="ADMIN">🛡️ Admin</option>
+      <option value="FIELD_OFFICIAL">🎖️ Field Officer</option>
+      <option value="LOGISTICS_OPERATOR">📦 Logistics Op</option>
+      <option value="VIEWER">👁️ Viewer</option>
+    </select>
+
+    <!-- Language Selector -->
+    <select id="lang-selector" class="text-[11px] py-0.5 px-2 rounded-full bg-[#1d1d1f] border border-[#333333] text-white font-normal cursor-pointer outline-none">
+      <option value="en">🇬🇧 English</option>
+      <option value="hi">🇮🇳 हिन्दी</option>
+      <option value="as">🚩 অসমীয়া</option>
+    </select>
+
+    <!-- Offline Sync Button -->
+    <button id="sync-now" class="text-[#cccccc] hover:text-white px-1.5 py-0.5 text-xs transition" title="Flush offline queue">
+      <i class="fa-solid fa-rotate text-[#2997ff]"></i>
+    </button>
+  </div>
+</header>
+
+<!-- ===================== 2. Apple Frosted Sub-Nav (52px) ===================== -->
+<div class="sub-nav-frosted">
+  <div class="flex items-center gap-3 min-w-0">
+    <button id="sidebar-toggle" class="btn btn-ghost lg:hidden !p-1.5 text-[#1d1d1f]" aria-label="Toggle navigation">
+      <i class="fa-solid fa-bars text-sm"></i>
+    </button>
+    <div class="min-w-0">
+      <h2 id="page-title" class="sub-nav-title truncate">Dashboard</h2>
+      <p id="page-sub" class="sub-nav-sub truncate">Operational overview and district accessibility intelligence</p>
+    </div>
+  </div>
+
+  <div class="flex items-center gap-2">
+    <!-- Persistent Primary Pill CTA -->
+    <a href="#/optimizer" class="btn btn-primary btn-xs px-3.5 py-1.5 font-normal tracking-tight">
+      <i class="fa-solid fa-bolt text-xs"></i><span>Run Solver</span>
+    </a>
+  </div>
+</div>
+
+<div id="app-root" class="min-h-[calc(100vh-96px)] lg:flex">
+
+  <!-- ===================== 3. Apple Sidebar (Frosted Parchment Drawer) ===================== -->
+  <aside id="app-sidebar" class="shrink-0 flex flex-col">
+    <nav id="app-nav" class="flex-1 overflow-y-auto p-3 space-y-1" aria-label="Primary navigation">
+      <p class="px-3 pt-2 pb-1 text-[11px] font-semibold text-[#7a7a7a] uppercase tracking-wider">Navigation</p>
+      <a href="#/dashboard" class="nav-link" data-route="dashboard"><i class="fa-solid fa-gauge-high nav-ico w-4"></i><span>Dashboard</span></a>
+      <a href="#/optimizer" class="nav-link" data-route="optimizer"><i class="fa-solid fa-boxes-packing nav-ico w-4"></i><span>Optimizer</span><span id="nav-opt-badge" class="ml-auto badge badge-moderate hidden">new</span></a>
+      <a href="#/map" class="nav-link" data-route="map"><i class="fa-solid fa-map-location-dot nav-ico w-4"></i><span>Zone Map</span></a>
+      
+      <p class="px-3 pt-4 pb-1 text-[11px] font-semibold text-[#7a7a7a] uppercase tracking-wider">Resources</p>
+      <a href="#/fleet" class="nav-link" data-route="fleet"><i class="fa-solid fa-truck-fast nav-ico w-4"></i><span>Fleet Assets</span></a>
+      <a href="#/inventory" class="nav-link" data-route="inventory"><i class="fa-solid fa-warehouse nav-ico w-4"></i><span>Inventory</span></a>
+      <a href="#/sites" class="nav-link" data-route="sites"><i class="fa-solid fa-location-crosshairs nav-ico w-4"></i><span>Disaster Sites</span></a>
+      
+      <p class="px-3 pt-4 pb-1 text-[11px] font-semibold text-[#7a7a7a] uppercase tracking-wider">Operations</p>
+      <a href="#/dispatch" class="nav-link" data-route="dispatch"><i class="fa-solid fa-paper-plane nav-ico w-4"></i><span>Dispatch Log</span><span id="nav-queue-badge" class="ml-auto badge badge-high hidden">0</span></a>
+      <a href="#/system" class="nav-link" data-route="system"><i class="fa-solid fa-heart-pulse nav-ico w-4"></i><span>System &amp; Sync</span></a>
+    </nav>
+
+    <div class="p-3 border-t hairline space-y-2">
+      <!-- SIH Compliance Trigger in Sidebar -->
+      <button id="sidebar-compliance-btn" class="w-full btn btn-secondary-pill btn-xs justify-between border-[#e0e0e0] text-[#1d1d1f] hover:bg-white">
+        <span class="flex items-center gap-1.5 text-[12px]">
+          <i class="fa-solid fa-certificate text-emerald-600"></i>
+          <span>SIH 26002 Matrix</span>
+        </span>
+        <span class="badge badge-stable text-[10px] py-0 px-1.5">21/21 ✓</span>
+      </button>
+
+      <div class="panel-flat p-2.5 bg-white border hairline">
+        <div class="flex items-center gap-2 mb-1">
+          <span id="net-dot" class="status-dot dot-live"></span>
+          <span id="net-label" class="text-[12px] font-semibold text-[#1d1d1f]">Online</span>
+        </div>
+        <p id="net-sub" class="text-[11px] text-[#7a7a7a] leading-tight">Live sync with relief command</p>
+      </div>
+    </div>
+  </aside>
+
+  <!-- ===================== 4. Main Content Area ===================== -->
+  <div class="flex-1 min-w-0 flex flex-col">
+    <main id="view-outlet" class="flex-1 p-4 sm:p-6 lg:p-8" role="main">
+      <div class="space-y-4">
+        <div class="skeleton h-24 w-full"></div>
+        <div class="skeleton h-64 w-full"></div>
+      </div>
+    </main>
+
+    <footer class="border-t hairline bg-[#f5f5f7] px-6 py-4 text-[12px] text-[#7a7a7a] flex flex-wrap gap-x-4 gap-y-1 items-center">
+      <span>OptiRelief v1.0 · Smart Logistics &amp; Accessibility Intelligence Platform</span>
+      <span class="ml-auto font-mono-num text-[#7a7a7a]">Problem Statement 26002 Compliant · North Eastern Region (NER)</span>
+    </footer>
+  </div>
+</div>
+
+<div id="toast-stack" aria-live="polite" aria-atomic="true"></div>
+<div id="modal-host"></div>
+<div id="print-area"></div>
+
+<!-- Vendor libraries -->
+<script src="https://cdn.jsdelivr.net/npm/dexie@3.2.7/dist/dexie.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/three@0.152.2/build/three.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/leaflet@1.9.4/dist/leaflet.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.3/dist/chart.umd.min.js"></script>
+
+<!-- Core Foundation & SIH Compliance Engine -->
+<script src="js/i18n.js?v=3.0"></script>
+<script src="js/providers.js?v=3.0"></script>
+<script src="js/tracking.js?v=3.0"></script>
+<script src="js/rbac.js?v=3.0"></script>
+<script src="js/districts.js?v=3.0"></script>
+<script src="js/sih_compliance.js?v=3.0"></script>
+<script src="js/solver.js?v=3.0"></script>
+<script src="js/store.js?v=3.0"></script>
+<script src="js/ui.js?v=3.0"></script>
+<script src="js/viz3d.js?v=3.0"></script>
+
+<!-- Application Views -->
+<script src="js/views/dashboard.js?v=3.0"></script>
+<script src="js/views/optimizer.js?v=3.0"></script>
+<script src="js/views/zonemap.js?v=3.0"></script>
+<script src="js/views/resources.js?v=3.0"></script>
+<script src="js/views/dispatch.js?v=3.0"></script>
+<script src="js/views/system.js?v=3.0"></script>
+<script src="js/app.js?v=3.0"></script>
+</body>
+</html>

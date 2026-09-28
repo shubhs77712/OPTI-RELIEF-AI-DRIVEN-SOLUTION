@@ -1,0 +1,71 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Optimizer harness</title>
+<script>location.hash = '#/optimizer';</script>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
+<script src="https://cdn.tailwindcss.com"></script>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@6.5.2/css/all.min.css">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/leaflet@1.9.4/dist/leaflet.css">
+<link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+<div id="app-root" class="min-h-screen lg:flex">
+  <aside id="app-sidebar" class="w-[264px] shrink-0 border-r hairline flex flex-col">
+    <nav id="app-nav" class="flex-1 p-3 space-y-1">
+      <a href="#/optimizer" class="nav-link" data-route="optimizer">Optimizer</a>
+    </nav>
+    <div class="p-3"><div class="panel-flat p-3">
+      <span id="net-dot" class="status-dot dot-live"></span>
+      <span id="net-label" class="text-xs">Online</span>
+      <p id="net-sub" class="text-[0.68rem]"></p>
+    </div></div>
+  </aside>
+  <div class="flex-1 min-w-0 flex flex-col">
+    <header class="px-4 py-3 flex items-center gap-3">
+      <button id="sidebar-toggle" class="btn btn-ghost lg:hidden">M</button>
+      <h2 id="page-title" class="font-bold text-white">t</h2>
+      <p id="page-sub" class="text-xs">s</p>
+      <span id="clock"></span>
+      <button id="sync-now" class="btn btn-ghost">Sync</button>
+    </header>
+    <main id="view-outlet" class="flex-1 p-4 sm:p-6"></main>
+  </div>
+</div>
+<div id="toast-stack"></div><div id="modal-host"></div><div id="print-area"></div>
+<span id="nav-queue-badge" class="hidden"></span><span id="nav-opt-badge" class="hidden"></span>
+
+<script src="https://cdn.jsdelivr.net/npm/dexie@3.2.7/dist/dexie.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/three@0.152.2/build/three.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/leaflet@1.9.4/dist/leaflet.js"></script>
+<script src="js/solver.js"></script>
+<script src="js/store.js"></script>
+<script src="js/ui.js"></script>
+<script src="js/viz3d.js"></script>
+<script src="js/views/dashboard.js"></script>
+<script src="js/views/optimizer.js"></script>
+<script src="js/views/zonemap.js"></script>
+<script src="js/views/resources.js"></script>
+<script src="js/views/dispatch.js"></script>
+<script src="js/views/system.js"></script>
+<script src="js/app.js"></script>
+<script>
+// Poll until the solver button exists and is enabled, then click it once.
+var tries = 0, fired = false;
+var poll = setInterval(function () {
+  tries++;
+  var b = document.getElementById('run-solver');
+  if (b && !b.disabled && !fired) {
+    fired = true;
+    clearInterval(poll);
+    b.click();
+  } else if (tries > 100) {
+    clearInterval(poll);
+    document.getElementById('view-outlet').insertAdjacentHTML('afterbegin',
+      '<p style="color:#f00">HARNESS: solver button never became enabled</p>');
+  }
+}, 150);
+</script>
+</body></html>

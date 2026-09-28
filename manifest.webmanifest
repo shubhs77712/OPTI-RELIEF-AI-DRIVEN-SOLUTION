@@ -1,0 +1,31 @@
+{
+  "name": "OptiRelief — Disaster Response Logistics Engine",
+  "short_name": "OptiRelief",
+  "description": "Multi-constraint resource allocation and 3D bin-packing engine for disaster response logistics. Generates load manifests offline in the field.",
+  "start_url": "./index.html",
+  "scope": "./",
+  "display": "standalone",
+  "orientation": "any",
+  "background_color": "#0b1120",
+  "theme_color": "#0b1120",
+  "categories": ["productivity", "utilities", "logistics"],
+  "icons": [
+    {
+      "src": "images/icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "images/icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any maskable"
+    }
+  ],
+  "shortcuts": [
+    { "name": "Run Solver", "url": "./index.html#/optimizer" },
+    { "name": "Zone Map", "url": "./index.html#/map" },
+    { "name": "Dispatch Log", "url": "./index.html#/dispatch" }
+  ]
+}

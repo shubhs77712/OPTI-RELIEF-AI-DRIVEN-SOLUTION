@@ -1,0 +1,136 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>OptiRelief — Solver Diagnostic Harness</title>
+<script src="https://cdn.tailwindcss.com"></script>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@6.5.2/css/all.min.css">
+<link rel="stylesheet" href="css/style.css">
+</head>
+<body class="min-h-screen flex flex-col bg-[#f5f5f7]">
+
+<!-- Apple Global Nav -->
+<header class="global-nav">
+  <div class="flex items-center gap-3">
+    <a href="index.html" class="flex items-center gap-2 text-white font-semibold text-[13px] tracking-tight">
+      <span class="w-6 h-6 rounded-md bg-[#0066cc] grid place-items-center text-white text-[11px]">
+        <i class="fa-solid fa-cube"></i>
+      </span>
+      <span>OptiRelief Solver Diagnostic</span>
+    </a>
+  </div>
+  <a href="index.html" class="text-[12px] text-[#cccccc] hover:text-white transition flex items-center gap-1.5">
+    <i class="fa-solid fa-arrow-left text-[11px]"></i>Back to Operational App
+  </a>
+</header>
+
+<main class="max-w-4xl mx-auto w-full p-4 sm:p-6 lg:p-8 space-y-4">
+  <div class="panel p-5 bg-white border hairline rounded-2xl shadow-sm">
+    <div class="flex items-center justify-between pb-3 border-b hairline">
+      <div class="flex items-center gap-2.5">
+        <div class="w-9 h-9 rounded-xl bg-[#e1f0ff] grid place-items-center text-[#0066cc] text-base">
+          <i class="fa-solid fa-calculator"></i>
+        </div>
+        <div>
+          <h2 class="text-base font-semibold text-[#1d1d1f]">Algorithmic Solver Verification Output</h2>
+          <p class="text-xs text-[#7a7a7a]">Multi-knapsack weight, volume, and 3D spatial constraints verification</p>
+        </div>
+      </div>
+      <a href="test-suite.html" class="btn btn-primary btn-xs">
+        <i class="fa-solid fa-flask-vial mr-1"></i>Full Test Suite
+      </a>
+    </div>
+
+    <pre id="out" class="mt-4 p-4 rounded-xl bg-[#f5f5f7] border hairline font-mono text-xs text-[#1d1d1f] overflow-x-auto leading-relaxed whitespace-pre-wrap">running…</pre>
+  </div>
+</main>
+
+<script src="js/solver.js"></script>
+<script>
+const log = [];
+function say(s) { log.push(s); document.getElementById('out').textContent = log.join('\n'); }
+
+const vehicles = [
+  { id:'v1', vehicle_code:'TRK-UNIMOG-01', type:'Truck', max_weight:6500, max_volume:18, length:4.2, width:2.2, height:1.9 },
+  { id:'v2', vehicle_code:'HELO-B3-01', type:'Helicopter', max_weight:1400, max_volume:4.5, length:2.1, width:1.4, height:1.5 }
+];
+const supplies = [
+  { id:'s1', sku:'MED-HIMAL-01', name:'High-Altitude Trauma Kit', category:'Medical', unit_weight:25, unit_volume:0.09, length:0.6, width:0.5, height:0.3, qty_available:80, urgency:10 },
+  { id:'s2', sku:'MED-OXY-PORT', name:'Portable O2 Concentrator', category:'Medical', unit_weight:18, unit_volume:0.064, length:0.4, width:0.4, height:0.4, qty_available:45, urgency:10 },
+  { id:'s4', sku:'WAT-CAN-10L', name:'Water Jerrycan 10L', category:'Water', unit_weight:11, unit_volume:0.027, length:0.3, width:0.3, height:0.3, qty_available:300, urgency:9 },
+  { id:'s7', sku:'FOO-ALP-RATION', name:'Alpine Survival Rations', category:'Food', unit_weight:28, unit_volume:0.084, length:0.6, width:0.4, height:0.35, qty_available:250, urgency:9 },
+  { id:'s10', sku:'SHE-SUBZERO-TENT', name:'Sub-Zero Tent', category:'Shelter', unit_weight:38, unit_volume:0.168, length:0.8, width:0.6, height:0.35, qty_available:100, urgency:9 }
+];
+const dest = { site_name:'Langtang Village Ground Zero', urgency:10, need_severity:10, transport_time:8.5 };
+
+const res = OptiSolver.optimizeAllocation(vehicles, supplies, dest, { strategy:'balanced' });
+const s = res.summary;
+
+say('=== SUMMARY ===');
+say('units packed      : ' + s.units_packed);
+say('weight            : ' + s.total_weight + ' / ' + s.capacity_weight + ' kg  (' + s.weight_util + '%)');
+say('volume            : ' + s.total_volume + ' / ' + s.capacity_volume + ' m3 (' + s.volume_util + '%)');
+say('hi-pri coverage   : ' + s.high_priority_coverage + '%');
+say('efficiency        : ' + s.efficiency + '%');
+say('solve time        : ' + s.solve_ms + ' ms');
+say('unallocated lines : ' + s.unallocated_lines);
+say('');
+
+// ---- Hard constraint verification ----
+let fail = 0;
+res.loads.forEach(l => {
+  say('--- ' + l.vehicle_code + ': ' + l.unit_count + ' units, ' + l.used_weight + 'kg, ' + l.used_volume + 'm3');
+  if (l.used_weight > l.capacity.max_weight + 1e-6) { say('  !! WEIGHT OVERFLOW'); fail++; }
+  if (l.used_volume > l.capacity.max_volume + 1e-6) { say('  !! VOLUME OVERFLOW'); fail++; }
+
+  // bounds check
+  let oob = 0;
+  l.boxes.forEach(b => {
+    if (b.x < -1e-6 || b.y < -1e-6 || b.z < -1e-6) oob++;
+    if (b.x + b.length > l.container.length + 1e-6) oob++;
+    if (b.y + b.width  > l.container.width  + 1e-6) oob++;
+    if (b.z + b.height > l.container.height + 1e-6) oob++;
+  });
+  if (oob) { say('  !! ' + oob + ' out-of-bounds coords'); fail++; }
+
+  // pairwise overlap check
+  let ov = 0;
+  const B = l.boxes;
+  for (let i = 0; i < B.length; i++) {
+    for (let j = i + 1; j < B.length; j++) {
+      const a = B[i], c = B[j], e = 1e-6;
+      if (a.x + a.length > c.x + e && c.x + c.length > a.x + e &&
+          a.y + a.width  > c.y + e && c.y + c.width  > a.y + e &&
+          a.z + a.height > c.z + e && c.z + c.height > a.z + e) ov++;
+    }
+  }
+  if (ov) { say('  !! ' + ov + ' OVERLAPPING PAIRS'); fail++; }
+  else say('  ok: no overlaps, all in bounds');
+});
+
+// ---- Over-allocation check ----
+const packedPerItem = {};
+res.loads.forEach(l => l.boxes.forEach(b => {
+  packedPerItem[b.item_id] = (packedPerItem[b.item_id] || 0) + 1;
+}));
+supplies.forEach(sp => {
+  const p = packedPerItem[sp.id] || 0;
+  if (p > sp.qty_available) { say('!! OVER-ALLOCATED ' + sp.sku + ': ' + p + ' > ' + sp.qty_available); fail++; }
+});
+
+say('');
+say('strategies:');
+['balanced','urgency','weight','volume'].forEach(st => {
+  const r = OptiSolver.optimizeAllocation(vehicles, supplies, dest, { strategy: st });
+  say('  ' + st.padEnd(9) + ' units=' + String(r.summary.units_packed).padStart(4) +
+      ' vol=' + String(r.summary.volume_util).padStart(5) + '%' +
+      ' wt=' + String(r.summary.weight_util).padStart(5) + '%' +
+      ' eff=' + r.summary.efficiency + '%');
+});
+
+say('');
+say(fail === 0 ? '✓ ALL CONSTRAINT CHECKS PASSED' : '*** ' + fail + ' FAILURES ***');
+</script>
+</body>
+</html>

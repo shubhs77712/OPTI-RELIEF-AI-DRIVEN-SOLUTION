@@ -1,0 +1,311 @@
+[
+  {
+    "name": "vehicles",
+    "fields": [
+      {
+        "name": "id",
+        "type": "text",
+        "description": "Unique record id"
+      },
+      {
+        "name": "vehicle_code",
+        "type": "text",
+        "description": "Fleet asset code e.g. TRK-01"
+      },
+      {
+        "name": "type",
+        "type": "text",
+        "description": "Asset class",
+        "options": [
+          "Truck",
+          "Boat",
+          "Helicopter"
+        ]
+      },
+      {
+        "name": "max_weight",
+        "type": "number",
+        "description": "Max payload in kg"
+      },
+      {
+        "name": "max_volume",
+        "type": "number",
+        "description": "Max cargo volume in m3"
+      },
+      {
+        "name": "length",
+        "type": "number",
+        "description": "Cargo bed length in m"
+      },
+      {
+        "name": "width",
+        "type": "number",
+        "description": "Cargo bed width in m"
+      },
+      {
+        "name": "height",
+        "type": "number",
+        "description": "Cargo bed height in m"
+      },
+      {
+        "name": "status",
+        "type": "text",
+        "description": "Availability",
+        "options": [
+          "Available",
+          "In Transit",
+          "Maintenance"
+        ]
+      },
+      {
+        "name": "base",
+        "type": "text",
+        "description": "Home depot / staging base"
+      },
+      {
+        "name": "speed_kmh",
+        "type": "number",
+        "description": "Average transit speed km/h"
+      }
+    ]
+  },
+  {
+    "name": "supplies",
+    "fields": [
+      {
+        "name": "id",
+        "type": "text",
+        "description": "Unique record id"
+      },
+      {
+        "name": "sku",
+        "type": "text",
+        "description": "Stock keeping unit code"
+      },
+      {
+        "name": "name",
+        "type": "text",
+        "description": "Supply item name"
+      },
+      {
+        "name": "category",
+        "type": "text",
+        "description": "Relief category",
+        "options": [
+          "Medical",
+          "Water",
+          "Food",
+          "Shelter",
+          "Equipment"
+        ]
+      },
+      {
+        "name": "unit_weight",
+        "type": "number",
+        "description": "Weight per unit in kg"
+      },
+      {
+        "name": "unit_volume",
+        "type": "number",
+        "description": "Volume per unit in m3"
+      },
+      {
+        "name": "length",
+        "type": "number",
+        "description": "Box length in m"
+      },
+      {
+        "name": "width",
+        "type": "number",
+        "description": "Box width in m"
+      },
+      {
+        "name": "height",
+        "type": "number",
+        "description": "Box height in m"
+      },
+      {
+        "name": "qty_available",
+        "type": "number",
+        "description": "Units in warehouse"
+      },
+      {
+        "name": "urgency",
+        "type": "number",
+        "description": "Dynamic urgency score 1-10"
+      },
+      {
+        "name": "warehouse",
+        "type": "text",
+        "description": "Storage warehouse"
+      }
+    ]
+  },
+  {
+    "name": "sites",
+    "fields": [
+      {
+        "name": "id",
+        "type": "text",
+        "description": "Unique record id"
+      },
+      {
+        "name": "site_name",
+        "type": "text",
+        "description": "Disaster site / destination name"
+      },
+      {
+        "name": "kind",
+        "type": "text",
+        "description": "Node kind",
+        "options": [
+          "Warehouse",
+          "Disaster Site"
+        ]
+      },
+      {
+        "name": "lat",
+        "type": "number",
+        "description": "Latitude"
+      },
+      {
+        "name": "lng",
+        "type": "number",
+        "description": "Longitude"
+      },
+      {
+        "name": "urgency",
+        "type": "number",
+        "description": "Destination urgency 1-10"
+      },
+      {
+        "name": "need_severity",
+        "type": "number",
+        "description": "Need severity index 1-10"
+      },
+      {
+        "name": "transport_time",
+        "type": "number",
+        "description": "Estimated transport time in hours"
+      },
+      {
+        "name": "population",
+        "type": "number",
+        "description": "Affected population"
+      },
+      {
+        "name": "status",
+        "type": "text",
+        "description": "Operational status",
+        "options": [
+          "Critical",
+          "High",
+          "Moderate",
+          "Stable",
+          "Depot"
+        ]
+      }
+    ]
+  },
+  {
+    "name": "alerts",
+    "fields": [
+      {
+        "name": "id",
+        "type": "text",
+        "description": "Unique record id"
+      },
+      {
+        "name": "region",
+        "type": "text",
+        "description": "Requesting region"
+      },
+      {
+        "name": "message",
+        "type": "text",
+        "description": "Alert body"
+      },
+      {
+        "name": "level",
+        "type": "text",
+        "description": "Severity",
+        "options": [
+          "Critical",
+          "High",
+          "Info"
+        ]
+      },
+      {
+        "name": "requested",
+        "type": "text",
+        "description": "Requested resources summary"
+      },
+      {
+        "name": "created_ts",
+        "type": "datetime",
+        "description": "Time received"
+      }
+    ]
+  },
+  {
+    "name": "dispatches",
+    "fields": [
+      {
+        "name": "id",
+        "type": "text",
+        "description": "Unique record id"
+      },
+      {
+        "name": "manifest_ref",
+        "type": "text",
+        "description": "Manifest reference code"
+      },
+      {
+        "name": "vehicle_code",
+        "type": "text",
+        "description": "Assigned vehicle"
+      },
+      {
+        "name": "site_name",
+        "type": "text",
+        "description": "Destination site"
+      },
+      {
+        "name": "total_weight",
+        "type": "number",
+        "description": "Loaded weight kg"
+      },
+      {
+        "name": "total_volume",
+        "type": "number",
+        "description": "Loaded volume m3"
+      },
+      {
+        "name": "efficiency",
+        "type": "number",
+        "description": "Optimization efficiency percent"
+      },
+      {
+        "name": "payload",
+        "type": "rich_text",
+        "description": "Serialized manifest payload JSON"
+      },
+      {
+        "name": "status",
+        "type": "text",
+        "description": "Sync/dispatch state",
+        "options": [
+          "Queued Offline",
+          "Synced",
+          "Dispatched",
+          "Delivered"
+        ]
+      },
+      {
+        "name": "queued_at",
+        "type": "datetime",
+        "description": "Queue timestamp"
+      }
+    ]
+  }
+]

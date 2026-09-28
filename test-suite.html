@@ -1,0 +1,705 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>OptiRelief — Automated Test Suite & System Verification</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;600;700&display=swap" rel="stylesheet">
+<script src="https://cdn.tailwindcss.com"></script>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@6.5.2/css/all.min.css">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/leaflet@1.9.4/dist/leaflet.css">
+<link rel="stylesheet" href="css/style.css?v=3.0">
+<style>
+  body {
+    background-color: #f5f5f7 !important;
+    color: #1d1d1f !important;
+    font-family: -apple-system, BlinkMacSystemFont, "SF Pro Text", "SF Pro Display", "Helvetica Neue", Helvetica, Arial, sans-serif;
+  }
+  .test-card {
+    background: #ffffff;
+    border: 1px solid #e0e0e0;
+    border-radius: 14px;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04);
+    transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+  }
+  .test-card:hover {
+    border-color: #0066cc;
+    box-shadow: 0 4px 12px rgba(0, 102, 204, 0.1);
+  }
+  .status-badge-pass {
+    background: #dcfce7;
+    color: #15803d;
+    border: 1px solid #86efac;
+  }
+  .status-badge-fail {
+    background: #fee2e2;
+    color: #b91c1c;
+    border: 1px solid #fca5a5;
+  }
+  .status-badge-running {
+    background: #e0f2fe;
+    color: #0369a1;
+    border: 1px solid #7dd3fc;
+  }
+</style>
+</head>
+<body class="min-h-screen flex flex-col">
+
+<!-- 1. Apple Global Nav (44px Pure Black) -->
+<header class="global-nav">
+  <div class="flex items-center gap-3">
+    <a href="index.html" class="flex items-center gap-2 text-white font-semibold text-[13px] tracking-tight hover:opacity-80 transition">
+      <span class="w-6 h-6 rounded-md bg-[#0066cc] grid place-items-center text-white text-[11px]">
+        <i class="fa-solid fa-cube"></i>
+      </span>
+      <span>OptiRelief Verification Engine</span>
+    </a>
+    <span class="badge badge-stable text-[10px] py-0 px-2">SIH 26002 Validated</span>
+  </div>
+
+  <div class="flex items-center gap-3 text-[12px] font-normal text-[#cccccc]">
+    <a href="index.html" class="hover:text-white transition flex items-center gap-1.5">
+      <i class="fa-solid fa-arrow-left text-[11px]"></i>Back to Operational App
+    </a>
+  </div>
+</header>
+
+<!-- 2. Apple Frosted Sub-Nav (52px) -->
+<nav class="sub-nav">
+  <div class="flex items-center gap-3">
+    <div class="w-8 h-8 rounded-full bg-[#0066cc] grid place-items-center text-white text-sm shadow-sm">
+      <i class="fa-solid fa-flask-vial"></i>
+    </div>
+    <div>
+      <h2 class="text-sm font-semibold text-[#1d1d1f] tracking-tight">System &amp; Algorithmic Test Harness</h2>
+      <p class="text-[11px] text-[#7a7a7a]">Multi-knapsack solver, 3D bin-packer, Leaflet GIS, Dexie sync, RBAC &amp; i18n</p>
+    </div>
+  </div>
+
+  <div class="flex items-center gap-2">
+    <button id="btn-export-report" class="btn btn-secondary-pill btn-xs" disabled>
+      <i class="fa-solid fa-file-export mr-1"></i>Export Log
+    </button>
+    <button id="btn-run-all" class="btn btn-primary btn-xs px-4">
+      <i class="fa-solid fa-play mr-1"></i>Run All Tests
+    </button>
+  </div>
+</nav>
+
+<!-- Main Container -->
+<div class="max-w-6xl mx-auto w-full p-4 sm:p-6 lg:p-8 space-y-6">
+
+  <!-- Live Metrics Banner -->
+  <div class="grid grid-cols-2 sm:grid-cols-4 gap-3 sm:gap-4">
+    <div class="panel p-4 text-center bg-white border hairline rounded-2xl shadow-sm">
+      <p class="text-[0.68rem] uppercase font-bold text-[#7a7a7a] tracking-wider">Total Tests</p>
+      <p id="metric-total" class="text-2xl sm:text-3xl font-black text-[#1d1d1f] mt-1 font-mono-num">0</p>
+    </div>
+    <div class="panel p-4 text-center bg-white border hairline rounded-2xl shadow-sm">
+      <p class="text-[0.68rem] uppercase font-bold text-emerald-600 tracking-wider">Passed</p>
+      <p id="metric-passed" class="text-2xl sm:text-3xl font-black text-emerald-600 mt-1 font-mono-num">0</p>
+    </div>
+    <div class="panel p-4 text-center bg-white border hairline rounded-2xl shadow-sm">
+      <p class="text-[0.68rem] uppercase font-bold text-red-600 tracking-wider">Failed</p>
+      <p id="metric-failed" class="text-2xl sm:text-3xl font-black text-red-600 mt-1 font-mono-num">0</p>
+    </div>
+    <div class="panel p-4 text-center bg-white border hairline rounded-2xl shadow-sm">
+      <p class="text-[0.68rem] uppercase font-bold text-[#0066cc] tracking-wider">Success Rate</p>
+      <p id="metric-rate" class="text-2xl sm:text-3xl font-black text-[#0066cc] mt-1 font-mono-num">100%</p>
+    </div>
+  </div>
+
+  <!-- Progress Bar -->
+  <div class="panel p-4 bg-white border hairline rounded-2xl shadow-sm">
+    <div class="flex items-center justify-between text-xs mb-1.5 text-[#6e6e73]">
+      <span id="progress-status" class="font-medium text-[#1d1d1f]">Ready to execute tests</span>
+      <span id="progress-pct" class="font-mono-num font-semibold text-[#0066cc]">0%</span>
+    </div>
+    <div class="w-full bg-[#e5e5ea] rounded-full h-2 overflow-hidden">
+      <div id="progress-bar" class="bg-[#0066cc] h-2 rounded-full transition-all duration-300" style="width: 0%"></div>
+    </div>
+  </div>
+
+  <!-- Controls & Category Filters -->
+  <div class="flex flex-wrap items-center justify-between gap-3">
+    <div class="flex flex-wrap items-center gap-1.5 bg-[#f5f5f7] p-1 rounded-full border hairline" id="category-filters">
+      <button class="btn btn-xs filter-btn active" data-cat="all" style="background:#0066cc;color:#ffffff;border-radius:9999px;font-weight:600">All Suites</button>
+      <button class="btn btn-xs btn-ghost filter-btn" data-cat="solver" style="color:#1d1d1f;border-radius:9999px">3D Solver</button>
+      <button class="btn btn-xs btn-ghost filter-btn" data-cat="store" style="color:#1d1d1f;border-radius:9999px">Dexie Store</button>
+      <button class="btn btn-xs btn-ghost filter-btn" data-cat="rbac" style="color:#1d1d1f;border-radius:9999px">RBAC</button>
+      <button class="btn btn-xs btn-ghost filter-btn" data-cat="i18n" style="color:#1d1d1f;border-radius:9999px">I18N</button>
+      <button class="btn btn-xs btn-ghost filter-btn" data-cat="districts" style="color:#1d1d1f;border-radius:9999px">Districts (NER)</button>
+      <button class="btn btn-xs btn-ghost filter-btn" data-cat="providers" style="color:#1d1d1f;border-radius:9999px">Providers</button>
+      <button class="btn btn-xs btn-ghost filter-btn" data-cat="tracking" style="color:#1d1d1f;border-radius:9999px">Live Telemetry</button>
+      <button class="btn btn-xs btn-ghost filter-btn" data-cat="sih" style="color:#1d1d1f;border-radius:9999px">SIH Matrix</button>
+      <button class="btn btn-xs btn-ghost filter-btn" data-cat="viz3d" style="color:#1d1d1f;border-radius:9999px">3D WebGL</button>
+    </div>
+    <div class="text-xs text-[#7a7a7a] font-mono-num">
+      Duration: <span id="run-duration" class="font-semibold text-[#1d1d1f]">0.00s</span>
+    </div>
+  </div>
+
+  <!-- Test Results Feed -->
+  <main id="tests-container" class="space-y-2.5">
+    <div class="panel p-8 text-center text-[#7a7a7a] bg-white border hairline rounded-2xl shadow-sm">
+      <i class="fa-solid fa-spinner fa-spin text-2xl mb-2 text-[#0066cc]"></i>
+      <p>Initializing test harness...</p>
+    </div>
+  </main>
+
+</div>
+
+<!-- Hidden Canvas and Map staging host for visual tests -->
+<div id="hidden-test-stage" style="position: absolute; left: -9999px; top: -9999px; width: 400px; height: 300px; overflow: hidden;">
+  <div id="test-canvas-host" style="width: 400px; height: 300px;"></div>
+  <div id="test-map-host" style="width: 400px; height: 300px;"></div>
+</div>
+
+<!-- Vendor libraries -->
+<script src="https://cdn.jsdelivr.net/npm/dexie@3.2.7/dist/dexie.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/three@0.152.2/build/three.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/leaflet@1.9.4/dist/leaflet.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.3/dist/chart.umd.min.js"></script>
+
+<!-- OptiRelief Core -->
+<script src="js/i18n.js?v=2.4"></script>
+<script src="js/providers.js?v=2.4"></script>
+<script src="js/tracking.js?v=2.4"></script>
+<script src="js/rbac.js?v=2.4"></script>
+<script src="js/districts.js?v=2.4"></script>
+<script src="js/sih_compliance.js?v=2.4"></script>
+<script src="js/solver.js?v=2.4"></script>
+<script src="js/store.js?v=2.4"></script>
+<script src="js/ui.js?v=2.4"></script>
+<script src="js/viz3d.js?v=2.4"></script>
+<script src="js/views/dashboard.js?v=2.4"></script>
+<script src="js/views/optimizer.js?v=2.4"></script>
+<script src="js/views/zonemap.js?v=2.4"></script>
+<script src="js/views/resources.js?v=2.4"></script>
+<script src="js/views/dispatch.js?v=2.4"></script>
+<script src="js/views/system.js?v=2.4"></script>
+<script src="js/app.js?v=2.4"></script>
+
+<script>
+/* ==========================================================================
+   OptiRelief In-Browser Test Suite Implementation
+   ========================================================================== */
+
+const testRegistry = [];
+let isRunning = false;
+
+function registerTest(category, name, fn) {
+  testRegistry.push({
+    id: 'test-' + testRegistry.length,
+    category,
+    name,
+    fn,
+    status: 'pending',
+    duration: 0,
+    error: null,
+    logs: []
+  });
+}
+
+function tAssert(condition, message = 'Assertion failed') {
+  if (!condition) throw new Error(message);
+}
+
+function tAssertEqual(actual, expected, message = '') {
+  if (actual !== expected) {
+    throw new Error(`${message ? message + ': ' : ''}Expected ${JSON.stringify(expected)}, got ${JSON.stringify(actual)}`);
+  }
+}
+
+function tAssertCloseTo(actual, expected, delta = 1e-4, message = '') {
+  if (Math.abs(actual - expected) > delta) {
+    throw new Error(`${message ? message + ': ' : ''}Expected ${actual} to be within ${delta} of ${expected}`);
+  }
+}
+
+/* ---------------------------------------------------------------- Test Definitions */
+
+// 1. OptiSolver Suite
+registerTest('solver', 'Priority Index calculation with distance discount and clamps', () => {
+  const p = OptiSolver.priorityIndex(10, 10, 5);
+  tAssertCloseTo(p, 7.76, 0.01, 'Priority value calculation');
+  const clamped = OptiSolver.priorityIndex(15, -2, 0.1);
+  tAssert(clamped >= 0 && clamped <= 10, 'Must clamp within [0, 10]');
+});
+
+registerTest('solver', 'Hard Constraint: Vehicle Weight capacity is strictly enforced', () => {
+  const v = [{ id: 'v1', vehicle_code: 'TEST-TRK', type: 'Truck', max_weight: 1000, max_volume: 10, length: 3, width: 2, height: 1.5 }];
+  const s = [{ id: 's1', sku: 'HEAVY', name: 'Heavy Gen', category: 'Equipment', unit_weight: 400, unit_volume: 0.5, length: 0.8, width: 0.6, height: 0.5, qty_available: 10, urgency: 9 }];
+  const res = OptiSolver.optimizeAllocation(v, s, { site_name: 'Site A', urgency: 8, need_severity: 8, transport_time: 2 });
+  tAssert(res.loads[0].used_weight <= 1000 + 1e-4, 'Used weight must not exceed max weight');
+  tAssert(res.loads[0].unit_count === 2, 'Should pack exactly 2 units (800kg <= 1000kg)');
+});
+
+registerTest('solver', 'Hard Constraint: Vehicle Cargo Volume capacity is strictly enforced', () => {
+  const v = [{ id: 'v1', vehicle_code: 'TEST-VOL', type: 'Truck', max_weight: 10000, max_volume: 2.0, length: 2, width: 1, height: 1 }];
+  const s = [{ id: 's1', sku: 'BULK', name: 'Bulk Mat', category: 'Shelter', unit_weight: 10, unit_volume: 0.6, length: 0.9, width: 0.8, height: 0.8, qty_available: 10, urgency: 8 }];
+  const res = OptiSolver.optimizeAllocation(v, s, { site_name: 'Site A', urgency: 8, need_severity: 8, transport_time: 2 });
+  tAssert(res.loads[0].used_volume <= 2.0 + 1e-4, 'Used volume must not exceed 2.0m3');
+});
+
+registerTest('solver', '3D Spatial Geometry: No bounding box coordinates overflow cargo bed', () => {
+  const v = [{ id: 'v1', vehicle_code: 'TEST-BED', type: 'Truck', max_weight: 8000, max_volume: 15, length: 4.0, width: 2.0, height: 1.8 }];
+  const s = [
+    { id: 's1', sku: 'MED-1', name: 'Kits', category: 'Medical', unit_weight: 20, unit_volume: 0.08, length: 0.6, width: 0.4, height: 0.35, qty_available: 60, urgency: 10 },
+    { id: 's2', sku: 'WAT-1', name: 'Water', category: 'Water', unit_weight: 22, unit_volume: 0.03, length: 0.35, width: 0.3, height: 0.3, qty_available: 80, urgency: 9 }
+  ];
+  const res = OptiSolver.optimizeAllocation(v, s, { site_name: 'Site A', urgency: 10, need_severity: 9, transport_time: 3 });
+  const load = res.loads[0];
+  load.boxes.forEach(b => {
+    tAssert(b.x >= 0 && b.x + b.length <= load.container.length + 1e-4, `X-axis bounds violated: ${b.x + b.length} > ${load.container.length}`);
+    tAssert(b.y >= 0 && b.y + b.width <= load.container.width + 1e-4, `Y-axis bounds violated: ${b.y + b.width} > ${load.container.width}`);
+    tAssert(b.z >= 0 && b.z + b.height <= load.container.height + 1e-4, `Z-axis bounds violated: ${b.z + b.height} > ${load.container.height}`);
+  });
+});
+
+registerTest('solver', '3D Spatial Geometry: Zero pairwise bounding box collisions', () => {
+  const v = [{ id: 'v1', vehicle_code: 'TEST-OVERLAP', type: 'Truck', max_weight: 9000, max_volume: 20, length: 5.0, width: 2.2, height: 2.0 }];
+  const s = [
+    { id: 's1', sku: 'MED', name: 'Med', category: 'Medical', unit_weight: 15, unit_volume: 0.06, length: 0.5, width: 0.4, height: 0.3, qty_available: 50, urgency: 10 },
+    { id: 's2', sku: 'FOOD', name: 'Food', category: 'Food', unit_weight: 25, unit_volume: 0.07, length: 0.6, width: 0.4, height: 0.3, qty_available: 50, urgency: 9 }
+  ];
+  const res = OptiSolver.optimizeAllocation(v, s, { site_name: 'Langtang', urgency: 9, need_severity: 8, transport_time: 4 });
+  const boxes = res.loads[0].boxes;
+  const eps = 1e-5;
+  let overlaps = 0;
+  for (let i = 0; i < boxes.length; i++) {
+    for (let j = i + 1; j < boxes.length; j++) {
+      const a = boxes[i], b = boxes[j];
+      if (a.x + a.length > b.x + eps && b.x + b.length > a.x + eps &&
+          a.y + a.width > b.y + eps && b.y + b.width > a.y + eps &&
+          a.z + a.height > b.z + eps && b.z + b.height > a.z + eps) {
+        overlaps++;
+      }
+    }
+  }
+  tAssertEqual(overlaps, 0, 'No overlapping crates allowed in 3D cargo space');
+});
+
+registerTest('solver', 'Inventory Integrity: Total packed units never exceed warehouse availability', () => {
+  const v = [{ id: 'v1', vehicle_code: 'TRK-BIG', type: 'Truck', max_weight: 30000, max_volume: 100, length: 10, width: 3, height: 3 }];
+  const s = [{ id: 's1', sku: 'SCARCE', name: 'Scarce Kit', category: 'Medical', unit_weight: 10, unit_volume: 0.02, length: 0.3, width: 0.3, height: 0.2, qty_available: 17, urgency: 10 }];
+  const res = OptiSolver.optimizeAllocation(v, s, { site_name: 'Site B', urgency: 9, need_severity: 9, transport_time: 1 });
+  tAssertEqual(res.summary.units_packed, 17, 'Must pack exactly 17 units (all available stock)');
+});
+
+registerTest('solver', 'Strategy Optimization Modes: balanced, urgency, weight, volume', () => {
+  const v = [{ id: 'v1', vehicle_code: 'TRK-TEST', type: 'Truck', max_weight: 4000, max_volume: 12, length: 3.5, width: 1.8, height: 1.6 }];
+  const s = [
+    { id: 's1', sku: 'HEAVY', name: 'Heavy', category: 'Equipment', unit_weight: 80, unit_volume: 0.1, length: 0.6, width: 0.5, height: 0.3, qty_available: 30, urgency: 6 },
+    { id: 's2', sku: 'LIGHT', name: 'Light', category: 'Medical', unit_weight: 10, unit_volume: 0.1, length: 0.6, width: 0.5, height: 0.3, qty_available: 30, urgency: 10 }
+  ];
+  ['balanced', 'urgency', 'weight', 'volume'].forEach(mode => {
+    const res = OptiSolver.optimizeAllocation(v, s, { site_name: 'Test', urgency: 8, need_severity: 7, transport_time: 2 }, { strategy: mode });
+    tAssert(res.ok && res.summary.units_packed > 0, `Strategy ${mode} failed to allocate`);
+  });
+});
+
+// 2. OptiStore Suite
+registerTest('store', 'Dexie IndexedDB Initialization & Schema Validation', async () => {
+  tAssert(window.OptiStore && OptiStore.db, 'OptiStore db must exist');
+  tAssert(OptiStore.TABLES.length === 5, 'Must contain 5 primary tables');
+  const counts = await OptiStore.localCounts();
+  OptiStore.TABLES.forEach(tbl => {
+    tAssert(typeof counts[tbl] === 'number', `Count for ${tbl} must be number`);
+  });
+});
+
+registerTest('store', 'CRUD Lifecycle: Create, List, Update, Remove item in Dexie', async () => {
+  const testId = 'test-veh-' + Date.now();
+  // 1. Create
+  const created = await OptiStore.create('vehicles', {
+    id: testId,
+    vehicle_code: 'TEST-ROVER-99',
+    type: 'Rover',
+    max_weight: 2500,
+    max_volume: 8.0
+  });
+  tAssert(created && created.row && created.row.id === testId, 'Create failed');
+
+  // 2. Read/List
+  const list = await OptiStore.list('vehicles');
+  const found = list.find(v => v.id === testId);
+  tAssert(found, 'Created item not found in list');
+
+  // 3. Update
+  const updated = await OptiStore.update('vehicles', testId, { max_weight: 3000 });
+  tAssert(updated.row.max_weight === 3000, 'Update failed');
+
+  // 4. Delete
+  await OptiStore.remove('vehicles', testId);
+  const postList = await OptiStore.list('vehicles');
+  tAssert(!postList.some(v => v.id === testId), 'Delete failed');
+});
+
+registerTest('store', 'Outbox Queue Counter & Network State tracking', async () => {
+  const initialCount = await OptiStore.outboxCount();
+  tAssert(typeof initialCount === 'number' && initialCount >= 0, 'Outbox count must be non-negative');
+  tAssert(typeof OptiStore.isOnline() === 'boolean', 'isOnline must return boolean');
+});
+
+// 3. RBAC Suite
+registerTest('rbac', 'Role catalog completeness and default ADMIN assignment', () => {
+  tAssert(RBAC.roles.ADMIN && RBAC.roles.FIELD_OFFICIAL && RBAC.roles.LOGISTICS_OPERATOR && RBAC.roles.VIEWER, 'All 4 roles defined');
+  RBAC.setRole('ADMIN');
+  tAssertEqual(RBAC.currentRole, 'ADMIN');
+  tAssertEqual(RBAC.can('canRunOptimizer'), true);
+  tAssertEqual(RBAC.can('canManageFleet'), true);
+});
+
+registerTest('rbac', 'Role Privileges: FIELD_OFFICIAL has patrol access but restricted command rights', () => {
+  RBAC.setRole('FIELD_OFFICIAL');
+  tAssertEqual(RBAC.can('canCreateIncident'), true);
+  tAssertEqual(RBAC.can('canUploadPhoto'), true);
+  tAssertEqual(RBAC.can('canRunOptimizer'), false);
+  tAssertEqual(RBAC.can('canManageFleet'), false);
+  RBAC.setRole('ADMIN');
+});
+
+registerTest('rbac', 'Role Privileges: LOGISTICS_OPERATOR has supply command but cannot report field incidents', () => {
+  RBAC.setRole('LOGISTICS_OPERATOR');
+  tAssertEqual(RBAC.can('canRunOptimizer'), true);
+  tAssertEqual(RBAC.can('canCreateDispatch'), true);
+  tAssertEqual(RBAC.can('canCreateIncident'), false);
+  RBAC.setRole('ADMIN');
+});
+
+registerTest('rbac', 'Role Privileges: VIEWER is strictly read-only', () => {
+  RBAC.setRole('VIEWER');
+  tAssertEqual(RBAC.can('canViewAnalytics'), true);
+  tAssertEqual(RBAC.can('canRunOptimizer'), false);
+  tAssertEqual(RBAC.can('canCreateDispatch'), false);
+  tAssertEqual(RBAC.can('canCreateIncident'), false);
+  RBAC.setRole('ADMIN');
+});
+
+// 4. I18N Suite
+registerTest('i18n', 'Language switching and UI key translations for English, Hindi, Assamese', () => {
+  const navKeys = ['dashboard', 'optimizer', 'zonemap', 'fleet', 'inventory', 'sites', 'dispatch', 'system'];
+  ['en', 'hi', 'as'].forEach(lang => {
+    I18N.setLanguage(lang);
+    tAssertEqual(I18N.getLanguage(), lang);
+    navKeys.forEach(k => {
+      const text = I18N.t(k);
+      tAssert(text && typeof text === 'string' && text !== '', `Translation missing for ${k} in ${lang}`);
+    });
+  });
+  I18N.setLanguage('en');
+});
+
+registerTest('i18n', 'Dynamic Alert translation into Hindi and Assamese', () => {
+  const sample = { level: 'Critical', message: 'Severe landslide in high mountain pass' };
+  I18N.setLanguage('hi');
+  const hi = I18N.translateAlert(sample);
+  tAssert(hi.level === 'अति गंभीर', 'Hindi critical level');
+  tAssert(hi.message.includes('भूस्खलन'), 'Hindi landslide translation');
+
+  I18N.setLanguage('as');
+  const as = I18N.translateAlert(sample);
+  tAssert(as.level === 'জৰুৰী', 'Assamese critical level');
+  tAssert(as.message.includes('ভূমিস্খলন'), 'Assamese landslide translation');
+  I18N.setLanguage('en');
+});
+
+// 5. Districts & Bottlenecks Suite
+registerTest('districts', 'District accessibility data for all 6 NER districts', () => {
+  const expected = ['Dima Hasao', 'Champhai', 'Papum Pare', 'East Khasi Hills', 'Kamrup Metropolitan', 'North Sikkim'];
+  const all = DistrictsEngine.getAll();
+  expected.forEach(name => {
+    const d = all[name];
+    tAssert(d, `Missing district ${name}`);
+    tAssert(d.totalRoutes > 0, `District ${name} missing routes`);
+    tAssert(d.keyCorridors.length > 0, `District ${name} missing corridors`);
+    tAssert(typeof d.connectivityPct === 'number', `District ${name} invalid connectivityPct`);
+  });
+});
+
+registerTest('districts', 'Incident recording dynamically updates road counts and connectivity score', () => {
+  const d = DistrictsEngine.get('Papum Pare');
+  const initialClosed = d.closedRoutes;
+  const initialIncidents = d.incidents.length;
+
+  DistrictsEngine.recordIncident('Papum Pare', {
+    title: 'Test Boulder Slip Km 18',
+    severity: 'Critical',
+    status: 'Closed',
+    desc: 'Blockage on highway corridor'
+  });
+
+  tAssertEqual(d.incidents.length, initialIncidents + 1, 'Incident count must increment');
+  tAssertEqual(d.closedRoutes, initialClosed + 1, 'Closed routes must increment');
+});
+
+registerTest('districts', 'Supply gap calculation: gap = required - available across all bottlenecks', () => {
+  const all = DistrictsEngine.getAll();
+  Object.values(all).forEach(dist => {
+    dist.bottlenecks.forEach(b => {
+      tAssertEqual(b.gap, b.required - b.available, `Mismatch at ${b.location}`);
+    });
+  });
+});
+
+// 6. Integration Providers Suite
+registerTest('providers', 'ProviderRegistry mode toggle (SIMULATED / LIVE)', () => {
+  ProviderRegistry.setMode('LIVE');
+  tAssertEqual(ProviderRegistry.isLive(), true);
+  ProviderRegistry.setMode('SIMULATED');
+  tAssertEqual(ProviderRegistry.isLive(), false);
+});
+
+registerTest('providers', 'WeatherProvider returns mountain meteorological metrics', async () => {
+  const wp = new WeatherProvider();
+  const w = await wp.getLiveWeather(28.158, 85.333, 'Langtang');
+  tAssert(typeof w.temp === 'number', 'Temperature missing');
+  tAssert(typeof w.wind_kmh === 'number', 'Wind speed missing');
+  tAssert(typeof w.visibility_km === 'number', 'Visibility missing');
+});
+
+registerTest('providers', 'GPSProvider, RoadDataProvider, and GovtDataProvider service contracts', async () => {
+  const gp = new GPSProvider();
+  const pos = await gp.getCurrentPosition();
+  tAssert(pos.lat && pos.lng && pos.accuracy, 'GPS payload incomplete');
+
+  const rp = new RoadDataProvider();
+  const roads = await rp.getRoadStatus('Dima Hasao');
+  tAssert(roads.length > 0, 'Road status empty');
+
+  const gov = new GovernmentDataProvider();
+  const sitrep = await gov.fetchNDMASitRep('Assam');
+  tAssert(sitrep.agency.includes('NDMA'), 'Govt SitRep mismatch');
+});
+
+// 7. Live Vehicle Telemetry Suite
+registerTest('tracking', 'LiveVehicleTracker telemetry loop & waypoint coordinates', () => {
+  const tracker = window.LiveVehicleTracker;
+  tAssert(tracker, 'window.LiveVehicleTracker must be initialized');
+  const fleet = tracker.getFleet();
+  tAssert(fleet.length >= 4, 'Must track at least 4 active fleet vehicles');
+  fleet.forEach(v => {
+    tAssert(v.speedKmh >= 0 && v.speedKmh <= 400, `Speed out of bounds on ${v.code}`);
+    tAssert(v.batteryFuelPct >= 0 && v.batteryFuelPct <= 100, `Fuel/battery out of bounds on ${v.code}`);
+    tAssert(v.progress >= 0 && v.progress <= 1, `Progress out of bounds on ${v.code}`);
+  });
+});
+
+// 8. SIH 26002 Matrix Suite
+registerTest('sih', 'SIH 26002 Problem Statement: Complete 21/21 requirement checklist', () => {
+  const list = SIHCompliance.getChecklist();
+  tAssertEqual(list.length, 21, 'Must contain exactly 21 SIH specifications');
+  list.forEach(item => {
+    tAssertEqual(item.status, 'VERIFIED', `Requirement ${item.title} must be VERIFIED`);
+  });
+});
+
+// 9. 3D WebGL Visualization Suite
+registerTest('viz3d', 'Three.js WebGL Renderer Support & Mesh Scene Generation', () => {
+  tAssert(Viz3D, 'Viz3D module must exist');
+  const supported = Viz3D.supported();
+  tAssert(typeof supported === 'boolean', 'supported() must return boolean');
+
+  // Test container mesh build
+  const host = document.getElementById('test-canvas-host');
+  const mockLoad = {
+    vehicle_code: 'TEST-TRK-3D',
+    container: { length: 4.0, width: 2.2, height: 1.8 },
+    capacity: { max_weight: 6000, max_volume: 15 },
+    used_weight: 1200,
+    used_volume: 4.2,
+    weight_util: 20.0,
+    volume_util: 28.0,
+    boxes: [
+      { seq: 1, item_id: 's1', sku: 'MED-1', name: 'Trauma Kit', category: 'Medical', x: 0, y: 0, z: 0, length: 0.6, width: 0.5, height: 0.4, weight: 25, color: '#ef4444' },
+      { seq: 2, item_id: 's2', sku: 'WAT-1', name: 'Water 20L', category: 'Water', x: 0.6, y: 0, z: 0, length: 0.4, width: 0.4, height: 0.4, weight: 20, color: '#3b82f6' }
+    ]
+  };
+
+  const handle = Viz3D.render(host, mockLoad, () => {});
+  tAssert(handle && typeof handle.boxCount === 'number', 'Viz3D render handle must report boxCount');
+  tAssertEqual(handle.boxCount, 2, 'Should create meshes for both boxes');
+  if (typeof handle.dispose === 'function') handle.dispose();
+});
+
+/* ---------------------------------------------------------------- UI Render & Runner */
+
+function renderTestCards() {
+  const container = document.getElementById('tests-container');
+  container.innerHTML = testRegistry.map((t, idx) => `
+    <div id="${t.id}" class="panel p-3.5 sm:p-4 test-card" data-category="${t.category}">
+      <div class="flex flex-wrap items-center justify-between gap-2.5">
+        <div class="flex items-center gap-3 min-w-0">
+          <span class="w-6 h-6 rounded-lg text-xs font-mono font-bold grid place-items-center bg-[#f5f5f7] border hairline text-[#1d1d1f]">
+            ${idx + 1}
+          </span>
+          <div class="min-w-0">
+            <div class="flex items-center gap-2">
+              <span class="text-xs font-bold text-[#1d1d1f]">${t.name}</span>
+            </div>
+            <p class="text-[0.68rem] text-[#7a7a7a] uppercase tracking-wider font-semibold font-mono">${t.category.toUpperCase()}</p>
+          </div>
+        </div>
+
+        <div class="flex items-center gap-2.5 ml-auto">
+          <span id="dur-${t.id}" class="text-xs font-mono-num text-[#86868b]">${t.duration ? t.duration.toFixed(1) + 'ms' : '—'}</span>
+          <span id="status-${t.id}" class="text-xs font-mono font-semibold px-2 py-0.5 rounded-full ${getStatusBadgeClass(t.status)}">
+            ${t.status.toUpperCase()}
+          </span>
+        </div>
+      </div>
+      <div id="err-${t.id}" class="hidden mt-2 p-3 rounded-xl bg-red-50 border border-red-200 text-xs font-mono text-red-700 overflow-x-auto"></div>
+    </div>
+  `).join('');
+
+  document.getElementById('metric-total').textContent = testRegistry.length;
+}
+
+function getStatusBadgeClass(status) {
+  if (status === 'pass') return 'status-badge-pass';
+  if (status === 'fail') return 'status-badge-fail';
+  if (status === 'running') return 'status-badge-running animate-pulse';
+  return 'bg-[#f5f5f7] text-[#7a7a7a] border hairline';
+}
+
+async function runAllTests() {
+  if (isRunning) return;
+  isRunning = true;
+  document.getElementById('btn-run-all').disabled = true;
+  document.getElementById('btn-export-report').disabled = true;
+
+  const tStart = performance.now();
+  let passed = 0;
+  let failed = 0;
+
+  for (let i = 0; i < testRegistry.length; i++) {
+    const t = testRegistry[i];
+    t.status = 'running';
+    updateTestCard(t);
+
+    const pct = Math.round(((i) / testRegistry.length) * 100);
+    document.getElementById('progress-bar').style.width = pct + '%';
+    document.getElementById('progress-pct').textContent = pct + '%';
+    document.getElementById('progress-status').textContent = `Running: ${t.name}...`;
+
+    const itemStart = performance.now();
+    try {
+      await t.fn();
+      t.status = 'pass';
+      t.error = null;
+      passed++;
+    } catch (err) {
+      t.status = 'fail';
+      t.error = err.message || String(err);
+      failed++;
+    }
+    t.duration = performance.now() - itemStart;
+    updateTestCard(t);
+
+    document.getElementById('metric-passed').textContent = passed;
+    document.getElementById('metric-failed').textContent = failed;
+    const rate = Math.round((passed / (passed + failed)) * 100);
+    document.getElementById('metric-rate').textContent = rate + '%';
+
+    // Yield thread slightly for smooth UI rendering
+    await new Promise(r => setTimeout(r, 15));
+  }
+
+  const totalTime = ((performance.now() - tStart) / 1000).toFixed(2);
+  document.getElementById('run-duration').textContent = totalTime + 's';
+  document.getElementById('progress-bar').style.width = '100%';
+  document.getElementById('progress-pct').textContent = '100%';
+  document.getElementById('progress-status').textContent = failed === 0 ? '✓ All tests completed successfully!' : `Completed with ${failed} failure(s)`;
+
+  isRunning = false;
+  document.getElementById('btn-run-all').disabled = false;
+  document.getElementById('btn-export-report').disabled = false;
+}
+
+function updateTestCard(t) {
+  const statusEl = document.getElementById(`status-${t.id}`);
+  const durEl = document.getElementById(`dur-${t.id}`);
+  const errEl = document.getElementById(`err-${t.id}`);
+
+  if (statusEl) {
+    statusEl.className = `text-xs font-mono font-semibold px-2 py-0.5 rounded-full ${getStatusBadgeClass(t.status)}`;
+    statusEl.textContent = t.status.toUpperCase();
+  }
+  if (durEl) {
+    durEl.textContent = t.duration ? t.duration.toFixed(1) + 'ms' : '—';
+  }
+  if (errEl) {
+    if (t.error) {
+      errEl.classList.remove('hidden');
+      errEl.textContent = 'Error: ' + t.error;
+    } else {
+      errEl.classList.add('hidden');
+    }
+  }
+}
+
+// Category filtering
+document.querySelectorAll('.filter-btn').forEach(btn => {
+  btn.addEventListener('click', (e) => {
+    document.querySelectorAll('.filter-btn').forEach(b => {
+      b.classList.remove('active');
+      b.classList.add('btn-ghost');
+      b.style.background = 'transparent';
+      b.style.color = '#1d1d1f';
+      b.style.fontWeight = '500';
+    });
+    btn.classList.add('active');
+    btn.classList.remove('btn-ghost');
+    btn.style.background = '#0066cc';
+    btn.style.color = '#ffffff';
+    btn.style.fontWeight = '600';
+
+    const cat = btn.dataset.cat;
+    document.querySelectorAll('.test-card').forEach(card => {
+      if (cat === 'all' || card.dataset.category === cat) {
+        card.classList.remove('hidden');
+      } else {
+        card.classList.add('hidden');
+      }
+    });
+  });
+});
+
+// Export report as JSON
+document.getElementById('btn-export-report').addEventListener('click', () => {
+  const report = {
+    title: 'OptiRelief Test Execution Report',
+    timestamp: new Date().toISOString(),
+    total: testRegistry.length,
+    passed: testRegistry.filter(t => t.status === 'pass').length,
+    failed: testRegistry.filter(t => t.status === 'fail').length,
+    tests: testRegistry.map(t => ({
+      name: t.name,
+      category: t.category,
+      status: t.status,
+      duration_ms: t.duration,
+      error: t.error
+    }))
+  };
+  const blob = new Blob([JSON.stringify(report, null, 2)], { type: 'application/json' });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = `optirelief-test-report-${Date.now()}.json`;
+  a.click();
+  URL.revokeObjectURL(url);
+});
+
+document.getElementById('btn-run-all').addEventListener('click', runAllTests);
+
+// Auto-run on load
+window.addEventListener('load', () => {
+  renderTestCards();
+  setTimeout(runAllTests, 250);
+});
+</script>
+</body>
+</html>

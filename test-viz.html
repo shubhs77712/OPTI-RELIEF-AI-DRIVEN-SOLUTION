@@ -1,0 +1,80 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>OptiRelief — 3D Bin-Packing Visualizer Diagnostic</title>
+<script src="https://cdn.tailwindcss.com"></script>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@6.5.2/css/all.min.css">
+<link rel="stylesheet" href="css/style.css">
+</head>
+<body class="min-h-screen flex flex-col bg-[#f5f5f7]">
+
+<!-- Apple Global Nav -->
+<header class="global-nav">
+  <div class="flex items-center gap-3">
+    <a href="index.html" class="flex items-center gap-2 text-white font-semibold text-[13px] tracking-tight">
+      <span class="w-6 h-6 rounded-md bg-[#0066cc] grid place-items-center text-white text-[11px]">
+        <i class="fa-solid fa-cube"></i>
+      </span>
+      <span>OptiRelief 3D Visualizer Diagnostic</span>
+    </a>
+  </div>
+  <a href="index.html" class="text-[12px] text-[#cccccc] hover:text-white transition flex items-center gap-1.5">
+    <i class="fa-solid fa-arrow-left text-[11px]"></i>Back to Operational App
+  </a>
+</header>
+
+<main class="max-w-4xl mx-auto w-full p-4 sm:p-6 lg:p-8 space-y-4">
+  <div class="panel p-5 bg-white border hairline rounded-2xl shadow-sm">
+    <div class="flex items-center justify-between pb-3 border-b hairline">
+      <div class="flex items-center gap-2.5">
+        <div class="w-9 h-9 rounded-xl bg-[#e1f0ff] grid place-items-center text-[#0066cc] text-base">
+          <i class="fa-solid fa-cubes"></i>
+        </div>
+        <div>
+          <h2 class="text-base font-semibold text-[#1d1d1f]">3D Bin-Packing Spatial Stage</h2>
+          <p class="text-xs text-[#7a7a7a]">Extreme-point three-dimensional placement and collision detection</p>
+        </div>
+      </div>
+      <a href="test-suite.html" class="btn btn-primary btn-xs">
+        <i class="fa-solid fa-flask-vial mr-1"></i>Full Test Suite
+      </a>
+    </div>
+
+    <div id="packing-canvas-host" class="mt-4 rounded-xl overflow-hidden border hairline relative" style="height: 440px;">
+      <div class="viz-overlay" style="top:.75rem;left:.75rem">
+        <span id="viz-dims" class="font-mono-num font-semibold text-xs text-[#1d1d1f] bg-white/90 px-3 py-1 rounded-full border hairline shadow-sm"></span>
+      </div>
+    </div>
+
+    <p id="stat" class="text-[#7a7a7a] mt-3 font-mono text-xs"></p>
+  </div>
+</main>
+
+<script src="https://cdn.jsdelivr.net/npm/three@0.152.2/build/three.min.js"></script>
+<script src="js/solver.js"></script>
+<script src="js/ui.js"></script>
+<script src="js/viz3d.js"></script>
+<script>
+const vehicles = [{ id:'v1', vehicle_code:'TRK-01', type:'Truck', max_weight:12000, max_volume:48, length:7.2, width:2.4, height:2.8 }];
+const supplies = [
+  { id:'s1', sku:'MED-TRAUMA', name:'Trauma Kit', category:'Medical', unit_weight:28, unit_volume:0.108, length:0.6, width:0.45, height:0.4, qty_available:60, urgency:10 },
+  { id:'s4', sku:'WAT-CAN20', name:'Water 20L', category:'Water', unit_weight:21, unit_volume:0.027, length:0.3, width:0.3, height:0.3, qty_available:200, urgency:9 },
+  { id:'s7', sku:'FOO-RATION', name:'Ration Pack', category:'Food', unit_weight:32, unit_volume:0.096, length:0.6, width:0.4, height:0.4, qty_available:120, urgency:8 },
+  { id:'s10', sku:'SHE-TENT', name:'Tent', category:'Shelter', unit_weight:42, unit_volume:0.192, length:0.8, width:0.6, height:0.4, qty_available:60, urgency:7 },
+  { id:'s13', sku:'EQP-GEN', name:'Generator', category:'Equipment', unit_weight:78, unit_volume:0.288, length:0.8, width:0.6, height:0.6, qty_available:12, urgency:5 }
+];
+const res = OptiSolver.optimizeAllocation(vehicles, supplies, { site_name:'Test', urgency:9, need_severity:8, transport_time:5 }, {});
+const load = res.loads[0];
+document.getElementById('viz-dims').textContent = load.vehicle_code + ' · ' + load.container.length + '×' + load.container.width + '×' + load.container.height + ' m';
+const out = Viz3D.render(document.getElementById('packing-canvas-host'), load, () => {});
+const cats = {};
+load.boxes.forEach(b => cats[b.category] = (cats[b.category]||0)+1);
+document.getElementById('stat').textContent =
+  'WebGL: ' + Viz3D.supported() + ' | meshes: ' + out.boxCount +
+  ' | categories: ' + JSON.stringify(cats) +
+  ' | vol ' + load.volume_util + '% wt ' + load.weight_util + '%';
+</script>
+</body>
+</html>
