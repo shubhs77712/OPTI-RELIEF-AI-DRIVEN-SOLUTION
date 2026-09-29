@@ -1,19 +1,6 @@
 # 🚑 OptiRelief — AI-Driven Disaster Response Logistics Engine
 
-[![Live Demo](https://img.shields.io/badge/Live_Demo-GitHub_Pages-2ea44f?style=for-the-badge&logo=github)](https://shubhs77712.github.io/OPTI-RELIEF-AI-DRIVEN-SOLUTION/)
-[![PWA Ready](https://img.shields.io/badge/PWA-100%25_Offline_Ready-5A0FC8?style=for-the-badge)](https://shubhs77712.github.io/OPTI-RELIEF-AI-DRIVEN-SOLUTION/)
-[![Status](https://img.shields.io/badge/Status-Active_&_Working-blue?style=for-the-badge)]()
 
-> **OptiRelief** is a smart disaster response web application that helps rescue teams calculate the fastest routes, pack supplies efficiently into vehicles using 3D simulations, and manage emergency supplies — **even with zero internet connection**.
-
----
-
-## 🌐 Live Demo
-👉 **[Click Here to Open OptiRelief Live](https://shubhs77712.github.io/OPTI-RELIEF-AI-DRIVEN-SOLUTION/)**
-
-*(Works directly in your browser on PC, Mac, Android, iPhone, and iPad)*
-
----
 
 ## ❓ The Problem & Our Solution
 
