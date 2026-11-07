@@ -53,6 +53,4 @@ You don't need any complex setup or node modules. Everything runs in the browser
 
 ---
 
-## 📱 How to Install on Mobile
 
-1. Open the **[Live
