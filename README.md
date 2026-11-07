@@ -55,12 +55,4 @@ You don't need any complex setup or node modules. Everything runs in the browser
 
 ## 📱 How to Install on Mobile
 
-1. Open the **[Live Demo](https://shubhs77712.github.io/OPTI-RELIEF-AI-DRIVEN-SOLUTION/)** on your phone's browser (Chrome or Safari).
-2. **On Android (Chrome):** Tap the `⋮` menu (top-right) ➔ Tap **"Install App"** or **"Add to Home screen"**.
-3. **On iPhone (Safari):** Tap the **Share** icon (square with arrow up) ➔ Tap **"Add to Home Screen"**.
-4. OptiRelief will appear as an app icon on your home screen and work offline anytime!
-
----
-
-## 📄 License
-This project is open-source and available under the [MIT License](LICENSE).
+1. Open the **[Live
